@@ -184,6 +184,7 @@ BOOL RdpSession::clientNew(freerdp* instance, rdpContext* context) {
     instance->VerifyCertificateEx = verifyCertificate;
     instance->VerifyChangedCertificateEx = verifyChangedCertificate;
     instance->PresentGatewayMessage = presentGatewayMessage;
+    instance->ChooseSmartcard = chooseSmartcard;
     instance->LogonErrorInfo = client_cli_logon_error_info;
     return TRUE;
 }
@@ -197,9 +198,39 @@ BOOL RdpSession::authenticate(freerdp* instance, char** username, char** passwor
         return client_cli_authenticate_ex(instance, username, password, domain, reason);
     // Launched from the connection manager: it already supplied whatever it had. Missing
     // credentials become an auth failure so the manager can ask and relaunch.
-    const bool complete = username && *username && password && *password;
+    const bool pinOnly = reason == AUTH_SMARTCARD_PIN || reason == AUTH_FIDO_PIN;
+    const bool complete = (pinOnly || (username && *username)) && password && *password;
     if (!complete) self->authFailed_ = true;
     return complete ? TRUE : FALSE;
+}
+
+BOOL RdpSession::chooseSmartcard(freerdp* instance, SmartcardCertInfo** certs, DWORD count,
+                                 DWORD* choice, BOOL gateway) {
+    RdpSession* self = from(instance->context);
+    if (self->interactive_ || !self->smartcardChooser_)
+        return client_cli_choose_smartcard(instance, certs, count, choice, gateway);
+    if (count == 0) return FALSE;
+    if (count == 1) {
+        *choice = 0;
+        return TRUE;
+    }
+    std::vector<std::string> labels;
+    for (DWORD i = 0; i < count; i++) {
+        const SmartcardCertInfo* c = certs[i];
+        std::string label = c->upn ? c->upn : c->subject ? c->subject : "certificate";
+        if (c->reader) {
+            char* reader = ConvertWCharToUtf8Alloc(c->reader, nullptr);
+            if (reader) {
+                label += std::string(" (") + reader + ")";
+                free(reader);
+            }
+        }
+        labels.push_back(std::move(label));
+    }
+    const int idx = self->smartcardChooser_(labels, gateway);
+    if (idx < 0 || DWORD(idx) >= count) return FALSE;
+    *choice = DWORD(idx);
+    return TRUE;
 }
 
 BOOL RdpSession::presentGatewayMessage(freerdp* instance, UINT32 type, BOOL isDisplayMandatory,

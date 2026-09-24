@@ -44,6 +44,7 @@ private:
 
     QLineEdit *name_, *address_, *user_, *domain_, *password_;
     QCheckBox* savePassword_;
+    QCheckBox* smartcardLogon_;
 
     QRadioButton *dispWindow_, *dispFull_, *dispMulti_, *dispFixed_;
     QSpinBox *width_, *height_;
@@ -53,7 +54,7 @@ private:
     QCheckBox *h264_, *gpu_, *vsync_;
 
     QComboBox* audio_;
-    QCheckBox *clipboard_, *mic_, *home_;
+    QCheckBox *clipboard_, *mic_, *home_, *smartcards_;
 
     QCheckBox* gwEnabled_;
     QLineEdit* gwAddress_;
@@ -69,7 +70,8 @@ class CredentialsDialog : public QDialog {
     Q_OBJECT
 public:
     CredentialsDialog(const QString& target, const QString& user, const QString& domain,
-                      bool remember, const QString& error, QWidget* parent = nullptr);
+                      bool remember, const QString& error, QWidget* parent = nullptr,
+                      bool pinOnly = false);
 
     QString username() const;
     QString domain() const;

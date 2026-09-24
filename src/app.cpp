@@ -338,6 +338,10 @@ int App::run(int argc, char** argv) {
         session_->setGatewayMessagePrompt([this](const GatewayMessage& m) {
             return runOnUiThread([&] { return showGatewayMessageDialog(m); }) == 1;
         });
+        session_->setSmartcardChooser([this](const std::vector<std::string>& labels, bool gw) {
+            // 0 = cancel, otherwise index + 1
+            return int(runOnUiThread([&] { return showSmartcardChooser(labels, gw); })) - 1;
+        });
     }
 
     if (!initVideo()) return 1;
@@ -501,6 +505,29 @@ DWORD App::showGatewayMessageDialog(const GatewayMessage& m) {
     int choice = 0;
     if (!SDL_ShowMessageBox(&data, &choice)) choice = 0;
     return choice == 1 ? 1 : 0;
+}
+
+DWORD App::showSmartcardChooser(const std::vector<std::string>& labels, bool gateway) {
+    // Message boxes lay buttons out in a row, so keep them to a handful.
+    const size_t n = std::min<size_t>(labels.size(), 6);
+    std::vector<SDL_MessageBoxButtonData> buttons;
+    buttons.push_back({SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Cancel"});
+    for (size_t i = 0; i < n; i++)
+        buttons.push_back({i == 0 ? SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT : 0u, int(i + 1),
+                           labels[i].c_str()});
+    std::string msg = gateway ? "Choose the smart card certificate for the gateway:"
+                              : "Choose the smart card certificate to sign in with:";
+    for (size_t i = 0; i < n; i++) msg += "\n  " + std::to_string(i + 1) + ". " + labels[i];
+    SDL_MessageBoxData data{};
+    data.flags = SDL_MESSAGEBOX_INFORMATION;
+    data.window = window_;
+    data.title = "Smart card";
+    data.message = msg.c_str();
+    data.numbuttons = int(buttons.size());
+    data.buttons = buttons.data();
+    int choice = 0;
+    if (!SDL_ShowMessageBox(&data, &choice)) choice = 0;
+    return DWORD(std::max(choice, 0));
 }
 
 bool App::toDesktop(SDL_WindowID id, float x, float y, int& dx, int& dy) {

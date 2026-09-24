@@ -87,6 +87,8 @@ QJsonObject Bookmark::toJson() const {
     o[QStringLiteral("clipboard")] = clipboard;
     o[QStringLiteral("microphone")] = microphone;
     o[QStringLiteral("shareHome")] = shareHome;
+    o[QStringLiteral("smartcards")] = smartcards;
+    o[QStringLiteral("smartcardLogon")] = smartcardLogon;
     o[QStringLiteral("gateway")] = gateway;
     o[QStringLiteral("gatewayHost")] = gatewayHost;
     o[QStringLiteral("gatewayPort")] = gatewayPort;
@@ -122,6 +124,8 @@ Bookmark Bookmark::fromJson(const QJsonObject& o) {
     b.clipboard = o.value(QStringLiteral("clipboard")).toBool(true);
     b.microphone = o.value(QStringLiteral("microphone")).toBool();
     b.shareHome = o.value(QStringLiteral("shareHome")).toBool();
+    b.smartcards = o.value(QStringLiteral("smartcards")).toBool();
+    b.smartcardLogon = o.value(QStringLiteral("smartcardLogon")).toBool();
     b.gateway = o.value(QStringLiteral("gateway")).toBool();
     b.gatewayHost = o.value(QStringLiteral("gatewayHost")).toString();
     b.gatewayPort = o.value(QStringLiteral("gatewayPort")).toInt(443);
@@ -163,6 +167,8 @@ QStringList Bookmark::sessionArgs(const QString& password, const QString& gatewa
     a << (clipboard ? QStringLiteral("+clipboard") : QStringLiteral("-clipboard"));
     if (microphone) a << QStringLiteral("/microphone");
     if (shareHome) a << QStringLiteral("+home-drive");
+    if (smartcards || smartcardLogon) a << QStringLiteral("/smartcard");
+    if (smartcardLogon) a << QStringLiteral("/smartcard-logon");
 
     if (gateway && !gatewayHost.isEmpty()) {
         a << QStringLiteral("--gw-host=%1").arg(hostPort(gatewayHost, gatewayPort, 443));

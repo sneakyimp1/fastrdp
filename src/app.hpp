@@ -89,6 +89,7 @@ private:
     void cancelPrompt();
     DWORD showCertificateDialog(const CertPrompt& p);        // UI thread
     DWORD showGatewayMessageDialog(const GatewayMessage& m); // UI thread
+    DWORD showSmartcardChooser(const std::vector<std::string>& labels, bool gateway); // UI thread
 
     AppOptions opts_;
     CommandQueue queue_;

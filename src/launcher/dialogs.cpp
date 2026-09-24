@@ -90,11 +90,15 @@ QWidget* EditDialog::generalTab() {
     form->addRow(tr("Name:"), name_);
     form->addRow(tr("User name:"), user_);
     form->addRow(tr("Domain:"), domain_);
+    smartcardLogon_ = new QCheckBox(tr("Sign in with a smart card (asks for the PIN)"));
+    smartcardLogon_->setChecked(b_.smartcardLogon);
     form->addRow(tr("Password:"), password_);
     form->addRow(QString(), savePassword_);
+    form->addRow(QString(), smartcardLogon_);
     form->addRow(QString(), hint(tr("Passwords are only ever stored in your keyring, never in "
                                     "fastrdp's configuration files.")));
     connect(savePassword_, &QCheckBox::toggled, this, &EditDialog::updateEnabled);
+    connect(smartcardLogon_, &QCheckBox::toggled, this, &EditDialog::updateEnabled);
     return w;
 }
 
@@ -193,10 +197,13 @@ QWidget* EditDialog::resourcesTab() {
     mic_->setChecked(b_.microphone);
     home_ = new QCheckBox(tr("Share my home folder"));
     home_->setChecked(b_.shareHome);
+    smartcards_ = new QCheckBox(tr("Smart card readers"));
+    smartcards_->setChecked(b_.smartcards || b_.smartcardLogon);
     form->addRow(tr("Remote audio:"), audio_);
     form->addRow(QString(), clipboard_);
     form->addRow(QString(), mic_);
     form->addRow(QString(), home_);
+    form->addRow(QString(), smartcards_);
     return w;
 }
 
@@ -246,6 +253,11 @@ QWidget* EditDialog::advancedTab() {
 }
 
 void EditDialog::updateEnabled() {
+    const bool card = smartcardLogon_->isChecked();
+    password_->setEnabled(!card);
+    savePassword_->setEnabled(!card && secrets::available());
+    if (card) smartcards_->setChecked(true);
+    smartcards_->setEnabled(!card);
     width_->setEnabled(dispFixed_->isChecked());
     height_->setEnabled(dispFixed_->isChecked());
     gpu_->setEnabled(h264_->isChecked());
@@ -279,7 +291,10 @@ Bookmark EditDialog::bookmark() const {
     b.name = name_->text().trimmed();
     b.username = user_->text().trimmed();
     b.domain = domain_->text().trimmed();
-    b.savePassword = savePassword_->isChecked() && (hadPassword_ || !password_->text().isEmpty());
+    b.smartcardLogon = smartcardLogon_->isChecked();
+    // A card PIN is never stored.
+    b.savePassword = !b.smartcardLogon && savePassword_->isChecked() &&
+                     (hadPassword_ || !password_->text().isEmpty());
 
     b.display = dispFull_->isChecked()    ? Bookmark::Display::Fullscreen
                 : dispMulti_->isChecked() ? Bookmark::Display::AllMonitors
@@ -298,6 +313,7 @@ Bookmark EditDialog::bookmark() const {
     b.clipboard = clipboard_->isChecked();
     b.microphone = mic_->isChecked();
     b.shareHome = home_->isChecked();
+    b.smartcards = smartcards_->isChecked();
 
     b.gateway = gwEnabled_->isChecked();
     splitHostPort(gwAddress_->text(), b.gatewayHost, b.gatewayPort, 443);
@@ -318,7 +334,7 @@ QString EditDialog::gatewayPassword() const { return gwPassword_->text(); }
 
 CredentialsDialog::CredentialsDialog(const QString& target, const QString& user,
                                      const QString& domain, bool remember, const QString& error,
-                                     QWidget* parent)
+                                     QWidget* parent, bool pinOnly)
     : QDialog(parent) {
     setWindowTitle(tr("Sign in"));
     auto* v = new QVBoxLayout(this);
@@ -343,10 +359,18 @@ CredentialsDialog::CredentialsDialog(const QString& target, const QString& user,
     remember_ = new QCheckBox(tr("Remember password"));
     remember_->setChecked(remember);
     remember_->setEnabled(secrets::available());
-    form->addRow(tr("User name:"), user_);
-    form->addRow(tr("Domain:"), domain_);
-    form->addRow(tr("Password:"), password_);
-    form->addRow(QString(), remember_);
+    if (pinOnly) {
+        user_->hide();
+        domain_->hide();
+        remember_->setChecked(false);
+        remember_->hide();
+        form->addRow(tr("Smart card PIN:"), password_);
+    } else {
+        form->addRow(tr("User name:"), user_);
+        form->addRow(tr("Domain:"), domain_);
+        form->addRow(tr("Password:"), password_);
+        form->addRow(QString(), remember_);
+    }
     v->addLayout(form);
 
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -355,7 +379,7 @@ CredentialsDialog::CredentialsDialog(const QString& target, const QString& user,
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     v->addWidget(buttons);
 
-    (user.isEmpty() ? user_ : password_)->setFocus();
+    (user.isEmpty() && !pinOnly ? user_ : password_)->setFocus();
     setMinimumWidth(380);
 }
 

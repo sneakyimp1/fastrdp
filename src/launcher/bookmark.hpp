@@ -33,6 +33,8 @@ struct Bookmark {
     bool clipboard = true;
     bool microphone = false;
     bool shareHome = false;
+    bool smartcards = false;     // redirect local readers
+    bool smartcardLogon = false; // sign in with a card (PIN instead of password)
 
     bool gateway = false;
     QString gatewayHost;

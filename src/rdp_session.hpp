@@ -17,6 +17,7 @@
 #include <freerdp/client.h>
 #include <freerdp/client/disp.h>
 #include <freerdp/freerdp.h>
+#include <freerdp/utils/smartcardlogon.h>
 
 namespace fastrdp {
 
@@ -74,6 +75,11 @@ public:
     void setCertificatePrompt(std::function<DWORD(const CertPrompt&)> fn) { certPrompt_ = std::move(fn); }
     // RD Gateway consent/service messages. Return false to abort the connection.
     void setGatewayMessagePrompt(std::function<bool(const GatewayMessage&)> fn) { gatewayPrompt_ = std::move(fn); }
+    // Picks a smart-card certificate when several are available. Returns the index, or
+    // -1 to cancel. Labels describe each certificate (UPN/subject and reader).
+    void setSmartcardChooser(std::function<int(const std::vector<std::string>&, bool gateway)> fn) {
+        smartcardChooser_ = std::move(fn);
+    }
     // When false, never read from the terminal (launched from the connection manager).
     void setInteractiveTerminal(bool v) { interactive_ = v; }
     // True when the connection failed because of bad or missing credentials.
@@ -127,6 +133,8 @@ private:
                                           const char* oldFingerprint, DWORD flags);
     static BOOL presentGatewayMessage(freerdp* instance, UINT32 type, BOOL isDisplayMandatory,
                                       BOOL isConsentMandatory, size_t length, const WCHAR* message);
+    static BOOL chooseSmartcard(freerdp* instance, SmartcardCertInfo** certs, DWORD count,
+                                DWORD* choice, BOOL gateway);
     static BOOL preConnect(freerdp* instance);
     static BOOL postConnect(freerdp* instance);
     static void postDisconnect(freerdp* instance);
@@ -160,6 +168,7 @@ private:
 
     std::function<DWORD(const CertPrompt&)> certPrompt_;
     std::function<bool(const GatewayMessage&)> gatewayPrompt_;
+    std::function<int(const std::vector<std::string>&, bool)> smartcardChooser_;
     bool interactive_ = true;
     std::atomic<bool> authFailed_{false};
     ClipboardBridge* clipboard_ = nullptr;

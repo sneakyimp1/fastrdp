@@ -356,19 +356,20 @@ void MainWindow::quickConnect() {
 void MainWindow::connectTo(Bookmark b, bool saved, const QString& error) {
     QString password;
     bool havePassword = false;
-    if (b.savePassword && error.isEmpty()) {
+    if (b.savePassword && !b.smartcardLogon && error.isEmpty()) {
         QString err;
         havePassword = secrets::read(b.passwordKey(), password, &err);
         if (!havePassword && !err.isEmpty())
             statusBar()->showMessage(tr("Couldn't read the saved password: %1").arg(err), 8000);
     }
     if (!havePassword) {
-        CredentialsDialog dlg(b.label(), b.username, b.domain, b.savePassword, error, this);
+        CredentialsDialog dlg(b.label(), b.username, b.domain, b.savePassword, error, this,
+                              b.smartcardLogon);
         if (dlg.exec() != QDialog::Accepted) return;
         b.username = dlg.username();
         b.domain = dlg.domain();
         password = dlg.password();
-        if (saved) {
+        if (saved && !b.smartcardLogon) {
             QString err;
             if (dlg.remember()) {
                 b.savePassword = secrets::write(b.passwordKey(), password, &err);

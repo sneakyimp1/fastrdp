@@ -23,6 +23,8 @@ everything between the network and your screen with a GPU pipeline:
 - **Multiple monitors.** `/multimon` (or "Full screen on all my monitors") opens one
   fullscreen window per monitor, each at its native resolution and scale factor, and
   sends Windows a matching per-monitor layout. `/monitors:0,2` picks a subset.
+- **Smart cards.** Readers can be redirected to the remote PC (`/smartcard`), and you can
+  sign in with a card (`/smartcard-logon`). The PIN is asked for each time and never stored.
 - **HiDPI aware.** The remote desktop is rendered at your display's native pixel count
   and scale factor.
 - **Clipboard.** Copy and paste text, formatted text (HTML) and images in both
@@ -105,7 +107,6 @@ Not implemented yet:
 
 - copying files through the clipboard
 - RemoteApp
-- smartcards
 
 ## License
 
