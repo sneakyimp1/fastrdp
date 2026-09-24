@@ -191,7 +191,7 @@ QWidget* EditDialog::resourcesTab() {
     audio_->addItem(tr("Play on the remote computer"), QStringLiteral("remote"));
     audio_->addItem(tr("Don't play"), QStringLiteral("off"));
     selectData(audio_, b_.audio);
-    clipboard_ = new QCheckBox(tr("Clipboard (text, formatted text and images)"));
+    clipboard_ = new QCheckBox(tr("Clipboard (text, formatted text, images and files)"));
     clipboard_->setChecked(b_.clipboard);
     mic_ = new QCheckBox(tr("Microphone"));
     mic_->setChecked(b_.microphone);
