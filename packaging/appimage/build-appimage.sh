@@ -37,7 +37,7 @@ install_deps() {
         libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev \
         libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev \
         libxss-dev libxtst-dev libpulse-dev libpipewire-0.3-dev libdbus-1-dev libudev-dev \
-        libssl-dev zlib1g-dev libkrb5-dev libcjson-dev libicu-dev \
+        libssl-dev zlib1g-dev libfuse3-dev libkrb5-dev libcjson-dev libicu-dev \
         qt6-base-dev qt6-wayland qtkeychain-qt6-dev libsecret-1-dev
 }
 
@@ -72,7 +72,8 @@ build_sdl() {
 build_freerdp() {
     fetch https://github.com/FreeRDP/FreeRDP.git "$FREERDP_TAG" "$WORK/src/FreeRDP"
     # WITH_FFMPEG is required even though fastrdp decodes H.264 itself: without an H.264
-    # backend FreeRDP never offers AVC420/AVC444 to the server.
+    # backend FreeRDP never offers AVC420/AVC444 to the server. WITH_FUSE is what lets
+    # files copied in Explorer be pasted on Linux.
     cmake -S "$WORK/src/FreeRDP" -B "$WORK/build/FreeRDP" -G Ninja \
         -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib \
         -DCMAKE_PREFIX_PATH="$PREFIX" \
@@ -81,7 +82,7 @@ build_freerdp() {
         -DWITH_PLATFORM_SERVER=OFF -DWITH_CLIENT=OFF -DWITH_X11=OFF -DWITH_WAYLAND=OFF \
         -DWITH_FFMPEG=ON -DWITH_VIDEO_FFMPEG=ON -DWITH_DSP_FFMPEG=OFF -DWITH_SWSCALE=ON \
         -DWITH_OPENH264=OFF -DWITH_CAIRO=OFF -DWITH_JPEG=OFF \
-        -DWITH_PULSE=ON -DWITH_ALSA=OFF -DWITH_OSS=OFF -DWITH_CUPS=OFF -DWITH_FUSE=OFF \
+        -DWITH_PULSE=ON -DWITH_ALSA=OFF -DWITH_OSS=OFF -DWITH_CUPS=OFF -DWITH_FUSE=ON \
         -DWITH_PCSC=ON -DWITH_PKCS11=ON -DWITH_KRB5=ON -DWITH_WEBVIEW=OFF \
         -DCHANNEL_URBDRC=OFF -DCHANNEL_TSMF=OFF
     ninja -C "$WORK/build/FreeRDP" install

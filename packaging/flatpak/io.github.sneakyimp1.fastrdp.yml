@@ -21,6 +21,8 @@ finish-args:
   - --socket=pulseaudio
   # GPU for OpenGL and VAAPI decoding.
   - --device=dri
+  # Files copied on Linux to paste into Windows, and /drive: redirection.
+  - --filesystem=home
   # Smart card readers, through the host's pcscd.
   - --socket=pcsc
   # Saved passwords: Secret Service or KWallet.
@@ -103,6 +105,8 @@ modules:
 
   # FreeRDP needs WITH_FFMPEG even though fastrdp decodes H.264 itself: without an
   # H.264 backend it never offers AVC420/AVC444 to the server.
+  # FUSE is off because the sandbox can't mount it, so files copied in Windows can't be
+  # pasted on Linux (copying the other way works).
   - name: freerdp
     buildsystem: cmake-ninja
     builddir: true

@@ -51,8 +51,9 @@ Each [release](https://github.com/sneakyimp1/fastrdp/releases) has two builds. B
 include their own FFmpeg with VAAPI, so hardware decoding works on any distribution:
 
 - **Flatpak:** `flatpak install --user fastrdp-x86_64.flatpak`. The KDE runtime is
-  fetched from Flathub automatically. Drive redirection (`/drive:`) only sees folders
-  you grant, for example `flatpak override --user --filesystem=~/Shared io.github.sneakyimp1.fastrdp`.
+  fetched from Flathub automatically. The sandbox can't mount FUSE, so files copied in
+  Windows can't be pasted on Linux; everything else, including copying files to Windows
+  and `/drive:` for folders in your home directory, works.
 - **AppImage:** `chmod +x fastrdp-*.AppImage` and run it. Needs glibc 2.39 or newer
   (Fedora 40+, Ubuntu 24.04+, Debian 13+), and uses the system's libva and VAAPI drivers.
 
