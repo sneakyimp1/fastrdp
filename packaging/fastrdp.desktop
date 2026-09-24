@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=fastrdp
+GenericName=Remote Desktop Client
+Comment=Low-latency Remote Desktop (RDP) client
+Exec=fastrdp
+Icon=krdc
+Terminal=false
+Categories=Network;RemoteAccess;Qt;
+Keywords=rdp;remote;desktop;windows;
+StartupWMClass=fastrdp
