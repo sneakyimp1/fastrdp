@@ -13,8 +13,9 @@ int runLauncher(int argc, char** argv) {
     QApplication::setApplicationDisplayName(QStringLiteral("fastrdp"));
     // Only claim the app id when the .desktop file is installed; otherwise the desktop
     // portal rejects the registration and Qt logs a warning.
-    if (!QStandardPaths::locate(QStandardPaths::ApplicationsLocation, QStringLiteral("fastrdp.desktop")).isEmpty())
-        QApplication::setDesktopFileName(QStringLiteral("fastrdp"));
+    const QString appId = QStringLiteral(FASTRDP_APP_ID);
+    if (!QStandardPaths::locate(QStandardPaths::ApplicationsLocation, appId + QStringLiteral(".desktop")).isEmpty())
+        QApplication::setDesktopFileName(appId);
     QApplication::setQuitOnLastWindowClosed(false);
 
     MainWindow w;

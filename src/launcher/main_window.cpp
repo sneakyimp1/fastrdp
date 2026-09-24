@@ -56,7 +56,7 @@ QString whenLabel(const QDateTime& t) {
 
 MainWindow::MainWindow() {
     setWindowTitle(tr("fastrdp"));
-    setWindowIcon(QIcon::fromTheme(QStringLiteral("krdc"), QIcon::fromTheme(QStringLiteral("network-server"))));
+    setWindowIcon(QIcon::fromTheme(QStringLiteral(FASTRDP_APP_ID), QIcon::fromTheme(QStringLiteral("network-server"))));
 
     // --- Actions / toolbar ---
     auto* actNew = new QAction(QIcon::fromTheme(QStringLiteral("list-add")), tr("New"), this);

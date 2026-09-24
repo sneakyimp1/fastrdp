@@ -4,3 +4,8 @@ build/
 *.user
 .vscode/
 .idea/
+build-appimage/
+build-flatpak/
+.flatpak-builder/
+*.AppImage
+*.flatpak
