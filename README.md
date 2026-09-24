@@ -91,7 +91,7 @@ Remote Session Environment*:
 - `src/renderer.cpp`: surface textures, blits, YUV/AVC444 shaders, dmabuf import.
 - `src/rdp_session.cpp`: FreeRDP instance, channels, pointer and input.
 - `src/clipboard.cpp`: cliprdr ↔ SDL clipboard bridge with lazy remote fetch.
-- `src/app.cpp`: window, event loop, resize debounce, certificate dialogs.
+- `src/app.cpp`: window, event loop, resize debounce, certificate and gateway dialogs.
 - `src/launcher/`: Qt connection manager, bookmarks and keyring.
 
 ## Status
@@ -104,7 +104,6 @@ Not implemented yet:
 - multi-monitor
 - RemoteApp
 - smartcards
-- Gateway consent-message dialog
 
 ## License
 

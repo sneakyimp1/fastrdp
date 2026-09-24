@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -54,9 +55,12 @@ private:
     void updateTitle(uint64_t nowMs);
     bool toDesktop(float x, float y, int& dx, int& dy) const;
     void toggleFullscreen();
-    DWORD askCertificate(const CertPrompt& p); // network thread
-    void servicePrompt();                      // UI thread
+    // Runs fn on the UI thread and returns its result; called from the network thread.
+    DWORD runOnUiThread(std::function<DWORD()> fn);
+    void servicePrompt(); // UI thread
     void cancelPrompt();
+    DWORD showCertificateDialog(const CertPrompt& p);        // UI thread
+    DWORD showGatewayMessageDialog(const GatewayMessage& m); // UI thread
 
     AppOptions opts_;
     CommandQueue queue_;
@@ -86,7 +90,7 @@ private:
     uint32_t requestedW_ = 0, requestedH_ = 0;
 
     std::mutex promptMu_;
-    const CertPrompt* promptReq_ = nullptr;
+    std::function<DWORD()>* promptReq_ = nullptr;
     std::promise<DWORD>* promptResult_ = nullptr;
 
     std::string host_;

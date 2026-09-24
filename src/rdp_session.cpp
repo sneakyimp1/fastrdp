@@ -18,6 +18,7 @@
 #include <freerdp/input.h>
 #include <freerdp/scancode.h>
 #include <freerdp/settings.h>
+#include <winpr/string.h>
 #include <winpr/synch.h>
 
 #include <SDL3/SDL_mouse.h>
@@ -182,7 +183,7 @@ BOOL RdpSession::clientNew(freerdp* instance, rdpContext* context) {
     instance->AuthenticateEx = authenticate;
     instance->VerifyCertificateEx = verifyCertificate;
     instance->VerifyChangedCertificateEx = verifyChangedCertificate;
-    instance->PresentGatewayMessage = client_cli_present_gateway_message;
+    instance->PresentGatewayMessage = presentGatewayMessage;
     instance->LogonErrorInfo = client_cli_logon_error_info;
     return TRUE;
 }
@@ -199,6 +200,32 @@ BOOL RdpSession::authenticate(freerdp* instance, char** username, char** passwor
     const bool complete = username && *username && password && *password;
     if (!complete) self->authFailed_ = true;
     return complete ? TRUE : FALSE;
+}
+
+BOOL RdpSession::presentGatewayMessage(freerdp* instance, UINT32 type, BOOL isDisplayMandatory,
+                                       BOOL isConsentMandatory, size_t length,
+                                       const WCHAR* message) {
+    RdpSession* self = from(instance->context);
+    if (self->interactive_ || !self->gatewayPrompt_)
+        return client_cli_present_gateway_message(instance, type, isDisplayMandatory,
+                                                  isConsentMandatory, length, message);
+    if (!isDisplayMandatory && !isConsentMandatory) return TRUE;
+
+    GatewayMessage m;
+    m.consent = type == GATEWAY_MESSAGE_CONSENT;
+    m.displayMandatory = isDisplayMandatory;
+    m.consentMandatory = isConsentMandatory;
+    if (message && length) {
+        char* utf8 = ConvertWCharNToUtf8Alloc(message, length / sizeof(WCHAR), nullptr);
+        if (utf8) {
+            m.text = utf8;
+            free(utf8);
+        }
+    }
+    const bool ok = self->gatewayPrompt_(m);
+    // Declining consent is the user's choice, not a failure worth an error dialog.
+    if (!ok) fprintf(stderr, "[rdp] gateway message declined\n");
+    return ok ? TRUE : FALSE;
 }
 
 DWORD RdpSession::verifyCertificate(freerdp* instance, const char* host, UINT16 port,

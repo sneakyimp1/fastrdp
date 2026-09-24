@@ -142,7 +142,14 @@ int App::run(int argc, char** argv) {
 
     const bool tty = isatty(STDIN_FILENO) && !opts_.launched;
     session_->setInteractiveTerminal(tty);
-    if (!tty) session_->setCertificatePrompt([this](const CertPrompt& p) { return askCertificate(p); });
+    if (!tty) {
+        session_->setCertificatePrompt([this](const CertPrompt& p) {
+            return runOnUiThread([&] { return showCertificateDialog(p); });
+        });
+        session_->setGatewayMessagePrompt([this](const GatewayMessage& m) {
+            return runOnUiThread([&] { return showGatewayMessageDialog(m); }) == 1;
+        });
+    }
 
     if (!createWindow()) return 1;
 
@@ -209,12 +216,12 @@ int App::run(int argc, char** argv) {
     return exitCode;
 }
 
-DWORD App::askCertificate(const CertPrompt& p) {
+DWORD App::runOnUiThread(std::function<DWORD()> fn) {
     std::promise<DWORD> result;
     auto fut = result.get_future();
     {
         std::lock_guard lk(promptMu_);
-        promptReq_ = &p;
+        promptReq_ = &fn;
         promptResult_ = &result;
     }
     wake();
@@ -232,8 +239,12 @@ void App::cancelPrompt() {
 void App::servicePrompt() {
     std::lock_guard lk(promptMu_);
     if (!promptReq_) return;
-    const CertPrompt& p = *promptReq_;
+    promptResult_->set_value((*promptReq_)());
+    promptReq_ = nullptr;
+    promptResult_ = nullptr;
+}
 
+DWORD App::showCertificateDialog(const CertPrompt& p) {
     std::string msg;
     std::string title;
     if (p.changed) {
@@ -268,9 +279,29 @@ void App::servicePrompt() {
     data.buttons = buttons;
     int choice = 0;
     if (!SDL_ShowMessageBox(&data, &choice)) choice = 0;
-    promptResult_->set_value(DWORD(std::max(choice, 0)));
-    promptReq_ = nullptr;
-    promptResult_ = nullptr;
+    return DWORD(std::max(choice, 0));
+}
+
+DWORD App::showGatewayMessageDialog(const GatewayMessage& m) {
+    std::string msg = m.text;
+    if (m.consentMandatory) msg += "\n\nDo you accept these terms?";
+    const SDL_MessageBoxButtonData consent[] = {
+        {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Decline"},
+        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Accept"},
+    };
+    const SDL_MessageBoxButtonData info[] = {
+        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "OK"},
+    };
+    SDL_MessageBoxData data{};
+    data.flags = SDL_MESSAGEBOX_INFORMATION;
+    data.window = window_;
+    data.title = m.consent ? "Remote Desktop Gateway — consent required" : "Remote Desktop Gateway";
+    data.message = msg.c_str();
+    data.numbuttons = m.consentMandatory ? SDL_arraysize(consent) : SDL_arraysize(info);
+    data.buttons = m.consentMandatory ? consent : info;
+    int choice = 0;
+    if (!SDL_ShowMessageBox(&data, &choice)) choice = 0;
+    return choice == 1 ? 1 : 0;
 }
 
 bool App::toDesktop(float x, float y, int& dx, int& dy) const {
