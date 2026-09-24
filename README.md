@@ -41,6 +41,17 @@ copied again on its way to the screen. That's what makes Remmina and xfreerdp fe
 next to mstsc on the same link. You can check your distribution's build with
 `xfreerdp /buildconfig | tr ' ' '\n' | grep -E 'FFMPEG|VAAPI|OPENH264'`.
 
+## Installing
+
+Each [release](https://github.com/sneakyimp1/fastrdp/releases) has two builds. Both
+include their own FFmpeg with VAAPI, so hardware decoding works on any distribution:
+
+- **Flatpak:** `flatpak install --user fastrdp-x86_64.flatpak`. The KDE runtime is
+  fetched from Flathub automatically. Drive redirection (`/drive:`) only sees folders
+  you grant, for example `flatpak override --user --filesystem=~/Shared io.github.sneakyimp1.fastrdp`.
+- **AppImage:** `chmod +x fastrdp-*.AppImage` and run it. Needs glibc 2.39 or newer
+  (Fedora 40+, Ubuntu 24.04+, Debian 13+), and uses the system's libva and VAAPI drivers.
+
 ## Building
 
 Fedora:
@@ -58,6 +69,19 @@ menu entry):
 ```bash
 cmake --install build --prefix ~/.local
 ```
+
+### Packages
+
+`packaging/appimage/build-appimage.sh` builds the AppImage on Ubuntu 24.04, and
+`packaging/flatpak/io.github.sneakyimp1.fastrdp.yml` is the Flatpak manifest (build
+instructions are at the top of each file). To publish a release:
+
+1. Add a `<release>` entry to `packaging/io.github.sneakyimp1.fastrdp.metainfo.xml`.
+2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
+
+The [Release workflow](.github/workflows/release.yml) builds both packages and attaches them
+to a GitHub release for the tag. Tags with a `-` (`v0.2.0-rc1`) become pre-releases. You can
+also run the workflow by hand from the Actions tab to get test builds without releasing.
 
 ## Usage
 

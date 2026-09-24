@@ -64,7 +64,7 @@ void App::wake() {
 // Windows
 
 bool App::initVideo() {
-    SDL_SetHint(SDL_HINT_APP_ID, "fastrdp");
+    SDL_SetHint(SDL_HINT_APP_ID, FASTRDP_APP_ID);
     SDL_SetHint(SDL_HINT_APP_NAME, "fastrdp");
     SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "0");
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");

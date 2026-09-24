@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(fastrdp LANGUAGES C CXX)
 
+# Reverse-DNS id used for the .desktop file, icon, AppStream metadata and Flatpak.
+set(FASTRDP_APP_ID io.github.sneakyimp1.fastrdp)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -37,6 +40,7 @@ add_executable(fastrdp
   src/launcher/secrets.cpp
 )
 target_include_directories(fastrdp PRIVATE src)
+target_compile_definitions(fastrdp PRIVATE FASTRDP_APP_ID="${FASTRDP_APP_ID}")
 
 target_compile_options(fastrdp PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers)
 target_link_libraries(fastrdp PRIVATE
@@ -52,4 +56,6 @@ target_link_libraries(fastrdp PRIVATE
 
 
 install(TARGETS fastrdp RUNTIME DESTINATION bin)
-install(FILES packaging/fastrdp.desktop DESTINATION share/applications)
+install(FILES packaging/${FASTRDP_APP_ID}.desktop DESTINATION share/applications)
+install(FILES packaging/${FASTRDP_APP_ID}.metainfo.xml DESTINATION share/metainfo)
+install(FILES packaging/${FASTRDP_APP_ID}.svg DESTINATION share/icons/hicolor/scalable/apps)

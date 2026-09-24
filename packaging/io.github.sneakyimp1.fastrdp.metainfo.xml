@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.sneakyimp1.fastrdp</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <name>fastrdp</name>
+  <summary>Low-latency Remote Desktop (RDP) client</summary>
+  <developer id="io.github.sneakyimp1">
+    <name>sneakyimp1</name>
+  </developer>
+  <description>
+    <p>
+      A Remote Desktop client for Windows PCs built so that scrolling, video and window
+      resizing feel as smooth as the Windows client does. H.264 video is decoded on the
+      GPU through VAAPI and composited with OpenGL, and frames are shown as soon as they
+      are decoded.
+    </p>
+    <ul>
+      <li>Hardware H.264 and AVC444 (full colour) decoding</li>
+      <li>Local hardware cursor and smooth resizing</li>
+      <li>Multiple monitors and HiDPI displays</li>
+      <li>Clipboard for text, formatted text and images</li>
+      <li>Smart card redirection and smart card sign-in</li>
+      <li>RD Gateway</li>
+      <li>Connection manager with passwords kept in the system keyring</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.sneakyimp1.fastrdp.desktop</launchable>
+  <url type="homepage">https://github.com/sneakyimp1/fastrdp</url>
+  <url type="bugtracker">https://github.com/sneakyimp1/fastrdp/issues</url>
+  <categories>
+    <category>Network</category>
+    <category>RemoteAccess</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <releases>
+    <release version="0.1.0" date="2026-09-24"/>
+  </releases>
+</component>
