@@ -22,6 +22,8 @@ everything between the network and your screen with a GPU pipeline:
   resolution is requested from the server once you stop.
 - **HiDPI aware.** The remote desktop is rendered at your display's native pixel count
   and scale factor.
+- **Clipboard.** Copy and paste text, formatted text (HTML) and images in both
+  directions. Remote content is fetched only when you actually paste.
 - **Connection manager.** Running `fastrdp` with no arguments opens a Qt window with saved
   connections. Passwords are optional and only ever stored in the system keyring
   (KWallet / Secret Service), never in config files.
@@ -88,6 +90,7 @@ Remote Session Environment*:
 - `src/h264_decoder.cpp`: FFmpeg decoder with VAAPI and DRM PRIME export (software fallback).
 - `src/renderer.cpp`: surface textures, blits, YUV/AVC444 shaders, dmabuf import.
 - `src/rdp_session.cpp`: FreeRDP instance, channels, pointer and input.
+- `src/clipboard.cpp`: cliprdr ↔ SDL clipboard bridge with lazy remote fetch.
 - `src/app.cpp`: window, event loop, resize debounce, certificate dialogs.
 - `src/launcher/`: Qt connection manager, bookmarks and keyring.
 
@@ -97,7 +100,7 @@ Working, and tested against a Windows desktop (RDPGFX 10.7, H.264) with VAAPI on
 
 Not implemented yet:
 
-- clipboard redirection
+- copying files through the clipboard
 - multi-monitor
 - RemoteApp
 - smartcards

@@ -82,6 +82,7 @@ QJsonObject Bookmark::toJson() const {
     o[QStringLiteral("gpuDecode")] = gpuDecode;
     o[QStringLiteral("vsync")] = vsync;
     o[QStringLiteral("audio")] = audio;
+    o[QStringLiteral("clipboard")] = clipboard;
     o[QStringLiteral("microphone")] = microphone;
     o[QStringLiteral("shareHome")] = shareHome;
     o[QStringLiteral("gateway")] = gateway;
@@ -116,6 +117,7 @@ Bookmark Bookmark::fromJson(const QJsonObject& o) {
     b.gpuDecode = o.value(QStringLiteral("gpuDecode")).toBool(true);
     b.vsync = o.value(QStringLiteral("vsync")).toBool(false);
     b.audio = o.value(QStringLiteral("audio")).toString(QStringLiteral("local"));
+    b.clipboard = o.value(QStringLiteral("clipboard")).toBool(true);
     b.microphone = o.value(QStringLiteral("microphone")).toBool();
     b.shareHome = o.value(QStringLiteral("shareHome")).toBool();
     b.gateway = o.value(QStringLiteral("gateway")).toBool();
@@ -155,6 +157,7 @@ QStringList Bookmark::sessionArgs(const QString& password, const QString& gatewa
     if (audio == QLatin1String("local")) a << QStringLiteral("/sound");
     else if (audio == QLatin1String("remote")) a << QStringLiteral("/audio-mode:1");
     else a << QStringLiteral("/audio-mode:2");
+    a << (clipboard ? QStringLiteral("+clipboard") : QStringLiteral("-clipboard"));
     if (microphone) a << QStringLiteral("/microphone");
     if (shareHome) a << QStringLiteral("+home-drive");
 

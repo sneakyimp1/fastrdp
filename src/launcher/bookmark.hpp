@@ -30,6 +30,7 @@ struct Bookmark {
     bool vsync = false;
 
     QString audio = QStringLiteral("local"); // local | remote | off
+    bool clipboard = true;
     bool microphone = false;
     bool shareHome = false;
 

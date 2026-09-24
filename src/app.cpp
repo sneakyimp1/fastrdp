@@ -29,6 +29,8 @@ App::App(AppOptions opts) : opts_(opts) {}
 App::~App() {
     cancelPrompt();
     if (session_) session_->stop();
+    session_.reset();
+    clipboard_.reset(); // releases SDL's clipboard userdata before SDL_Quit
     if (gl_) {
         renderer_.shutdown();
         SDL_GL_DestroyContext(gl_);
@@ -155,6 +157,8 @@ int App::run(int argc, char** argv) {
     requestedW_ = freerdp_settings_get_uint32(s, FreeRDP_DesktopWidth);
     requestedH_ = freerdp_settings_get_uint32(s, FreeRDP_DesktopHeight);
 
+    clipboard_ = std::make_unique<ClipboardBridge>([this] { wake(); });
+    session_->setClipboard(clipboard_.get());
     session_->start();
     statsMs_ = SDL_GetTicks();
 
@@ -176,6 +180,7 @@ int App::run(int argc, char** argv) {
 
         if (auto c = session_->takeCursor()) applyCursor(std::move(*c));
         servicePrompt();
+        clipboard_->service();
 
         const uint64_t t = SDL_GetTicks();
         maybeRequestResize(t);
@@ -308,6 +313,9 @@ void App::handleEvent(const SDL_Event& ev) {
         displayScale_ = SDL_GetWindowDisplayScale(window_);
         lastResizeMs_ = SDL_GetTicks();
         resizePending_ = true;
+        break;
+    case SDL_EVENT_CLIPBOARD_UPDATE:
+        if (clipboard_) clipboard_->onLocalClipboardUpdate(ev.clipboard);
         break;
     case SDL_EVENT_WINDOW_EXPOSED:
         needPresent_ = true;

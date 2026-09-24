@@ -29,6 +29,7 @@ add_executable(fastrdp
   src/renderer.cpp
   src/gl_util.cpp
   src/keymap.cpp
+  src/clipboard.cpp
   src/launcher/launcher.cpp
   src/launcher/main_window.cpp
   src/launcher/dialogs.cpp

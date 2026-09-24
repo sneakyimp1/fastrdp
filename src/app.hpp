@@ -1,5 +1,6 @@
 #pragma once
 
+#include "clipboard.hpp"
 #include "commands.hpp"
 #include "rdp_session.hpp"
 #include "renderer.hpp"
@@ -59,6 +60,7 @@ private:
 
     AppOptions opts_;
     CommandQueue queue_;
+    std::unique_ptr<ClipboardBridge> clipboard_;
     std::unique_ptr<RdpSession> session_;
     Renderer renderer_;
 

@@ -53,7 +53,7 @@ private:
     QCheckBox *h264_, *gpu_, *vsync_;
 
     QComboBox* audio_;
-    QCheckBox *mic_, *home_;
+    QCheckBox *clipboard_, *mic_, *home_;
 
     QCheckBox* gwEnabled_;
     QLineEdit* gwAddress_;

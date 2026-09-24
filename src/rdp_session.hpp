@@ -1,5 +1,6 @@
 #pragma once
 
+#include "clipboard.hpp"
 #include "commands.hpp"
 #include "gfx_pipeline.hpp"
 
@@ -68,6 +69,8 @@ public:
     void setInteractiveTerminal(bool v) { interactive_ = v; }
     // True when the connection failed because of bad or missing credentials.
     bool authFailed() const { return authFailed_; }
+    // Clipboard redirection is wired to this bridge when the server opens the channel.
+    void setClipboard(ClipboardBridge* c) { clipboard_ = c; }
 
     bool start();
     void stop();
@@ -147,6 +150,7 @@ private:
     std::function<DWORD(const CertPrompt&)> certPrompt_;
     bool interactive_ = true;
     std::atomic<bool> authFailed_{false};
+    ClipboardBridge* clipboard_ = nullptr;
 
     std::thread thread_;
     std::atomic<bool> finished_{false};

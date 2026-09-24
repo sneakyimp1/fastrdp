@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include <freerdp/channels/channels.h>
+#include <freerdp/channels/cliprdr.h>
 #include <freerdp/channels/disp.h>
 #include <freerdp/client/channels.h>
 #include <freerdp/client/cmdline.h>
@@ -289,6 +290,9 @@ void RdpSession::onChannelConnected(void* ctx, const ChannelConnectedEventArgs* 
         self->gfx_ = std::make_unique<GfxPipeline>(context, self->queue_, self->wake_);
         self->gfx_->attach(gfx);
         fprintf(stderr, "[rdp] graphics pipeline channel open\n");
+    } else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0) {
+        if (self->clipboard_)
+            self->clipboard_->attach(static_cast<CliprdrClientContext*>(e->pInterface));
     } else if (strcmp(e->name, DISP_DVC_CHANNEL_NAME) == 0) {
         self->disp_ = static_cast<DispClientContext*>(e->pInterface);
         self->disp_->custom = self;
@@ -303,6 +307,8 @@ void RdpSession::onChannelDisconnected(void* ctx, const ChannelDisconnectedEvent
     RdpSession* self = from(context);
     if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) == 0) {
         if (self->gfx_) self->gfx_->detach();
+    } else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0) {
+        if (self->clipboard_) self->clipboard_->detach();
     } else if (strcmp(e->name, DISP_DVC_CHANNEL_NAME) == 0) {
         self->dispReady_ = false;
         self->disp_ = nullptr;
