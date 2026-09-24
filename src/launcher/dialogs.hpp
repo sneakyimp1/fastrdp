@@ -45,7 +45,7 @@ private:
     QLineEdit *name_, *address_, *user_, *domain_, *password_;
     QCheckBox* savePassword_;
 
-    QRadioButton *dispWindow_, *dispFull_, *dispFixed_;
+    QRadioButton *dispWindow_, *dispFull_, *dispMulti_, *dispFixed_;
     QSpinBox *width_, *height_;
     QComboBox* scale_;
 

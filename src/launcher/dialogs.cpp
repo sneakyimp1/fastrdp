@@ -106,6 +106,7 @@ QWidget* EditDialog::displayTab() {
     auto* bv = new QVBoxLayout(box);
     dispWindow_ = new QRadioButton(tr("Match the window — resize the remote desktop with it"));
     dispFull_ = new QRadioButton(tr("Full screen"));
+    dispMulti_ = new QRadioButton(tr("Full screen on all my monitors"));
     dispFixed_ = new QRadioButton(tr("Fixed resolution:"));
     width_ = new QSpinBox;
     height_ = new QSpinBox;
@@ -121,13 +122,15 @@ QWidget* EditDialog::displayTab() {
     fixedRow->addStretch();
     bv->addWidget(dispWindow_);
     bv->addWidget(dispFull_);
+    bv->addWidget(dispMulti_);
     bv->addLayout(fixedRow);
     switch (b_.display) {
     case Bookmark::Display::Window: dispWindow_->setChecked(true); break;
     case Bookmark::Display::Fullscreen: dispFull_->setChecked(true); break;
     case Bookmark::Display::Fixed: dispFixed_->setChecked(true); break;
+    case Bookmark::Display::AllMonitors: dispMulti_->setChecked(true); break;
     }
-    for (auto* r : {dispWindow_, dispFull_, dispFixed_})
+    for (auto* r : {dispWindow_, dispFull_, dispMulti_, dispFixed_})
         connect(r, &QRadioButton::toggled, this, &EditDialog::updateEnabled);
 
     auto* form = new QFormLayout;
@@ -279,6 +282,7 @@ Bookmark EditDialog::bookmark() const {
     b.savePassword = savePassword_->isChecked() && (hadPassword_ || !password_->text().isEmpty());
 
     b.display = dispFull_->isChecked()    ? Bookmark::Display::Fullscreen
+                : dispMulti_->isChecked() ? Bookmark::Display::AllMonitors
                 : dispFixed_->isChecked() ? Bookmark::Display::Fixed
                                           : Bookmark::Display::Window;
     b.width = width_->value();

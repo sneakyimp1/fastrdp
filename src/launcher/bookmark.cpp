@@ -17,6 +17,7 @@ const char* displayName(Bookmark::Display d) {
     switch (d) {
     case Bookmark::Display::Fullscreen: return "fullscreen";
     case Bookmark::Display::Fixed: return "fixed";
+    case Bookmark::Display::AllMonitors: return "multimon";
     default: return "window";
     }
 }
@@ -24,6 +25,7 @@ const char* displayName(Bookmark::Display d) {
 Bookmark::Display displayFrom(const QString& s) {
     if (s == QLatin1String("fullscreen")) return Bookmark::Display::Fullscreen;
     if (s == QLatin1String("fixed")) return Bookmark::Display::Fixed;
+    if (s == QLatin1String("multimon")) return Bookmark::Display::AllMonitors;
     return Bookmark::Display::Window;
 }
 
@@ -149,6 +151,7 @@ QStringList Bookmark::sessionArgs(const QString& password, const QString& gatewa
     switch (display) {
     case Display::Fullscreen: a << QStringLiteral("/f"); break;
     case Display::Fixed: a << QStringLiteral("/size:%1x%2").arg(width).arg(height); break;
+    case Display::AllMonitors: a << QStringLiteral("/multimon"); break;
     case Display::Window: break;
     }
 

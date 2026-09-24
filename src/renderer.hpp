@@ -15,6 +15,16 @@ namespace fastrdp {
 
 enum class ScaleMode { Fit, Stretch, Native };
 
+// Maps remote-desktop coordinates onto a window:
+//   window_px = offset + (desktop - src) * scale
+struct View {
+    float offsetX = 0, offsetY = 0;
+    float scaleX = 1, scaleY = 1;
+    float srcX = 0, srcY = 0;
+
+    bool toDesktop(float wx, float wy, uint32_t desktopW, uint32_t desktopH, int& dx, int& dy) const;
+};
+
 struct RenderStats {
     uint64_t presents = 0;
     uint64_t gfxFrames = 0;
@@ -31,15 +41,17 @@ public:
     // Executes queued commands. Returns true when something visible changed.
     bool execute(std::vector<Command>& commands);
 
-    // Draws all mapped surfaces into the window's default framebuffer.
-    void present(int windowW, int windowH);
+    // Draws the mapped surfaces into the current window's default framebuffer.
+    void present(int windowW, int windowH, const View& view);
+
+    // Whole desktop placed in a window according to the scale mode.
+    View fitView(int windowW, int windowH) const;
+    // One desktop region (e.g. a monitor) filling the window.
+    static View regionView(int windowW, int windowH, const Rect& region);
 
     // Session (remote desktop) size, as last announced by the server.
     uint32_t desktopWidth() const { return desktopW_; }
     uint32_t desktopHeight() const { return desktopH_; }
-
-    // Window-pixel -> desktop-pixel mapping used by the last present, for input.
-    bool windowToDesktop(float wx, float wy, int& dx, int& dy) const;
 
     void setScaleMode(ScaleMode m) { scaleMode_ = m; }
     const RenderStats& stats() const { return stats_; }
@@ -116,9 +128,6 @@ private:
     };
     std::vector<VideoFramePtr> inFlight_;
     std::deque<Retired> retired_;
-
-    // Last present transform (window pixels).
-    float viewX_ = 0, viewY_ = 0, viewScaleX_ = 1, viewScaleY_ = 1;
 
     RenderStats stats_;
 };

@@ -12,6 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include <SDL3/SDL.h>
 
@@ -46,14 +47,41 @@ public:
     int run(int argc, char** argv);
 
 private:
-    bool createWindow();
+    // One window. In single-window mode it shows the whole desktop; with multiple
+    // monitors each fullscreen window shows its monitor's region of the desktop.
+    struct Output {
+        SDL_Window* window = nullptr;
+        SDL_DisplayID display = 0;
+        int pixelW = 0, pixelH = 0;
+        float density = 1.0f;
+        Rect region; // desktop region shown (monitor mode only)
+        View view;   // last view used to present, for input mapping
+    };
+
+    // A local monitor laid out in remote-desktop pixels.
+    struct MonitorLayout {
+        SDL_DisplayID display;
+        Rect rect; // relative to the bounding box of all monitors
+        bool primary;
+        uint32_t scalePercent;
+    };
+
+    bool initVideo();
+    bool createSingleWindow();
+    bool createMonitorWindows(const std::vector<MonitorLayout>& layout);
+    SDL_Window* makeWindow(const char* title, int w, int h, SDL_WindowFlags extra);
+    std::vector<MonitorLayout> computeMonitorLayout(rdpSettings* s) const;
+    void applyMonitorLayout(rdpSettings* s, const std::vector<MonitorLayout>& layout);
+    Output* outputFor(SDL_WindowID id);
+    void presentAll();
+
     void wake();
     void handleEvent(const SDL_Event& ev);
     void flushMotion();
     void applyCursor(CursorUpdate&& c);
     void maybeRequestResize(uint64_t nowMs);
     void updateTitle(uint64_t nowMs);
-    bool toDesktop(float x, float y, int& dx, int& dy) const;
+    bool toDesktop(SDL_WindowID id, float x, float y, int& dx, int& dy);
     void toggleFullscreen();
     // Runs fn on the UI thread and returns its result; called from the network thread.
     DWORD runOnUiThread(std::function<DWORD()> fn);
@@ -68,7 +96,9 @@ private:
     std::unique_ptr<RdpSession> session_;
     Renderer renderer_;
 
-    SDL_Window* window_ = nullptr;
+    std::vector<Output> outputs_;
+    SDL_Window* window_ = nullptr; // primary output; parent for dialogs
+    bool multimon_ = false;
     SDL_GLContext gl_ = nullptr;
     SDL_Cursor* cursor_ = nullptr;
     uint32_t wakeEvent_ = 0;
@@ -76,9 +106,6 @@ private:
     bool quit_ = false;
     bool needPresent_ = true;
     bool fullscreen_ = false;
-
-    int pixelW_ = 0, pixelH_ = 0;
-    float density_ = 1.0f;
     float displayScale_ = 1.0f;
 
     // Pointer motion is coalesced per event batch; only the latest position matters.

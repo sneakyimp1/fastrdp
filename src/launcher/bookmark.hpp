@@ -9,7 +9,7 @@
 namespace fastrdp {
 
 struct Bookmark {
-    enum class Display { Window, Fullscreen, Fixed };
+    enum class Display { Window, Fullscreen, Fixed, AllMonitors };
 
     QString id;
     QString name;

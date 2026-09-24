@@ -664,32 +664,49 @@ void Renderer::exec(const cmd::LegacyUpdate& c) {
 
 // ---------------------------------------------------------------------------------------
 
-void Renderer::present(int windowW, int windowH) {
+View Renderer::fitView(int windowW, int windowH) const {
+    View v;
+    if (!desktopW_ || !desktopH_ || windowW <= 0 || windowH <= 0) return v;
+    switch (scaleMode_) {
+    case ScaleMode::Native: break;
+    case ScaleMode::Stretch:
+        v.scaleX = float(windowW) / desktopW_;
+        v.scaleY = float(windowH) / desktopH_;
+        break;
+    case ScaleMode::Fit:
+        v.scaleX = v.scaleY = std::min(float(windowW) / desktopW_, float(windowH) / desktopH_);
+        break;
+    }
+    if (std::fabs(v.scaleX - 1.0f) < 1e-3f && std::fabs(v.scaleY - 1.0f) < 1e-3f)
+        v.scaleX = v.scaleY = 1.0f;
+    if (scaleMode_ != ScaleMode::Native) {
+        v.offsetX = std::floor((windowW - desktopW_ * v.scaleX) * 0.5f);
+        v.offsetY = std::floor((windowH - desktopH_ * v.scaleY) * 0.5f);
+    }
+    return v;
+}
+
+View Renderer::regionView(int windowW, int windowH, const Rect& region) {
+    View v;
+    v.srcX = float(region.x);
+    v.srcY = float(region.y);
+    if (region.w > 0 && region.h > 0) {
+        v.scaleX = float(windowW) / region.w;
+        v.scaleY = float(windowH) / region.h;
+    }
+    if (std::fabs(v.scaleX - 1.0f) < 1e-3f && std::fabs(v.scaleY - 1.0f) < 1e-3f)
+        v.scaleX = v.scaleY = 1.0f;
+    return v;
+}
+
+void Renderer::present(int windowW, int windowH, const View& v) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, windowW, windowH);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     if (!desktopW_ || !desktopH_ || windowW <= 0 || windowH <= 0) return;
 
-    float sx = 1, sy = 1;
-    switch (scaleMode_) {
-    case ScaleMode::Native: break;
-    case ScaleMode::Stretch:
-        sx = float(windowW) / desktopW_;
-        sy = float(windowH) / desktopH_;
-        break;
-    case ScaleMode::Fit:
-        sx = sy = std::min(float(windowW) / desktopW_, float(windowH) / desktopH_);
-        break;
-    }
-    if (std::fabs(sx - 1.0f) < 1e-3f && std::fabs(sy - 1.0f) < 1e-3f) sx = sy = 1.0f;
-    viewScaleX_ = sx;
-    viewScaleY_ = sy;
-    viewX_ = std::floor((windowW - desktopW_ * sx) * 0.5f);
-    viewY_ = std::floor((windowH - desktopH_ * sy) * 0.5f);
-    if (scaleMode_ == ScaleMode::Native) viewX_ = viewY_ = 0;
-
-    const bool exact = sx == 1.0f && sy == 1.0f;
+    const bool exact = v.scaleX == 1.0f && v.scaleY == 1.0f;
     glUseProgram(progPresent_);
     glUniform2f(glGetUniformLocation(progPresent_, "uTarget"), float(windowW), float(windowH));
     glUniform1i(glGetUniformLocation(progPresent_, "uFlip"), 1);
@@ -697,25 +714,30 @@ void Renderer::present(int windowW, int windowH) {
     glActiveTexture(GL_TEXTURE3);
     for (auto& [id, s] : surfaces_) {
         if (!s.mapped) continue;
+        const uint32_t tw = s.targetW ? s.targetW : s.w;
+        const uint32_t th = s.targetH ? s.targetH : s.h;
+        const float x = v.offsetX + (s.outX - v.srcX) * v.scaleX;
+        const float y = v.offsetY + (s.outY - v.srcY) * v.scaleY;
+        const float w = tw * v.scaleX, h = th * v.scaleY;
+        if (x >= windowW || y >= windowH || x + w <= 0 || y + h <= 0) continue;
         glBindTexture(GL_TEXTURE_2D, s.tex);
         const GLint filter = exact ? GL_NEAREST : GL_LINEAR;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-        const uint32_t tw = s.targetW ? s.targetW : s.w;
-        const uint32_t th = s.targetH ? s.targetH : s.h;
-        glUniform4f(rectLoc, viewX_ + s.outX * sx, viewY_ + s.outY * sy, tw * sx, th * sy);
+        glUniform4f(rectLoc, x, y, w, h);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
     glActiveTexture(GL_TEXTURE0);
     stats_.presents++;
 }
 
-bool Renderer::windowToDesktop(float wx, float wy, int& dx, int& dy) const {
-    if (!desktopW_ || !desktopH_) return false;
-    const float x = (wx - viewX_) / viewScaleX_;
-    const float y = (wy - viewY_) / viewScaleY_;
-    dx = std::clamp(int(x), 0, int(desktopW_) - 1);
-    dy = std::clamp(int(y), 0, int(desktopH_) - 1);
+bool View::toDesktop(float wx, float wy, uint32_t desktopW, uint32_t desktopH, int& dx,
+                     int& dy) const {
+    if (!desktopW || !desktopH) return false;
+    const float x = (wx - offsetX) / scaleX + srcX;
+    const float y = (wy - offsetY) / scaleY + srcY;
+    dx = std::clamp(int(x), 0, int(desktopW) - 1);
+    dy = std::clamp(int(y), 0, int(desktopH) - 1);
     return true;
 }
 
