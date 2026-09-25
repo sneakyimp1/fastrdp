@@ -199,11 +199,14 @@ QWidget* EditDialog::resourcesTab() {
     home_->setChecked(b_.shareHome);
     smartcards_ = new QCheckBox(tr("Smart card readers"));
     smartcards_->setChecked(b_.smartcards || b_.smartcardLogon);
+    reverseScroll_ = new QCheckBox(tr("Reverse scroll direction (natural scrolling)"));
+    reverseScroll_->setChecked(b_.reverseScroll);
     form->addRow(tr("Remote audio:"), audio_);
     form->addRow(QString(), clipboard_);
     form->addRow(QString(), mic_);
     form->addRow(QString(), home_);
     form->addRow(QString(), smartcards_);
+    form->addRow(tr("Mouse wheel:"), reverseScroll_);
     return w;
 }
 
@@ -314,6 +317,7 @@ Bookmark EditDialog::bookmark() const {
     b.microphone = mic_->isChecked();
     b.shareHome = home_->isChecked();
     b.smartcards = smartcards_->isChecked();
+    b.reverseScroll = reverseScroll_->isChecked();
 
     b.gateway = gwEnabled_->isChecked();
     splitHostPort(gwAddress_->text(), b.gatewayHost, b.gatewayPort, 443);

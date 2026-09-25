@@ -55,6 +55,7 @@ private:
 
     QComboBox* audio_;
     QCheckBox *clipboard_, *mic_, *home_, *smartcards_;
+    QCheckBox* reverseScroll_;
 
     QCheckBox* gwEnabled_;
     QLineEdit* gwAddress_;

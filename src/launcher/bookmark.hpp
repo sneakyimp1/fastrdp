@@ -35,6 +35,7 @@ struct Bookmark {
     bool shareHome = false;
     bool smartcards = false;     // redirect local readers
     bool smartcardLogon = false; // sign in with a card (PIN instead of password)
+    bool reverseScroll = false;  // invert the mouse wheel sent to the remote PC
 
     bool gateway = false;
     QString gatewayHost;

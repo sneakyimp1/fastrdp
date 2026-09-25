@@ -23,6 +23,7 @@ struct AppOptions {
     bool h264 = true;
     bool hwDecode = true;
     bool printStats = false;
+    bool reverseScroll = false;
     ScaleMode scale = ScaleMode::Fit;
     bool userSetSize = false;
     bool userSetNetwork = false;

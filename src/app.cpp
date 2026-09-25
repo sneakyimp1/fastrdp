@@ -633,7 +633,9 @@ void App::handleEvent(const SDL_Event& ev) {
     case SDL_EVENT_MOUSE_WHEEL: {
         flushMotion();
         float dy = ev.wheel.y, dx = ev.wheel.x;
-        if (ev.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+        // SDL reports FLIPPED when the local desktop uses natural scrolling; undo that so
+        // the remote PC gets the physical direction, then apply the connection's setting.
+        if ((ev.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) != opts_.reverseScroll) {
             dy = -dy;
             dx = -dx;
         }

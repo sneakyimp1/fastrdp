@@ -89,6 +89,7 @@ QJsonObject Bookmark::toJson() const {
     o[QStringLiteral("shareHome")] = shareHome;
     o[QStringLiteral("smartcards")] = smartcards;
     o[QStringLiteral("smartcardLogon")] = smartcardLogon;
+    o[QStringLiteral("reverseScroll")] = reverseScroll;
     o[QStringLiteral("gateway")] = gateway;
     o[QStringLiteral("gatewayHost")] = gatewayHost;
     o[QStringLiteral("gatewayPort")] = gatewayPort;
@@ -126,6 +127,7 @@ Bookmark Bookmark::fromJson(const QJsonObject& o) {
     b.shareHome = o.value(QStringLiteral("shareHome")).toBool();
     b.smartcards = o.value(QStringLiteral("smartcards")).toBool();
     b.smartcardLogon = o.value(QStringLiteral("smartcardLogon")).toBool();
+    b.reverseScroll = o.value(QStringLiteral("reverseScroll")).toBool();
     b.gateway = o.value(QStringLiteral("gateway")).toBool();
     b.gatewayHost = o.value(QStringLiteral("gatewayHost")).toString();
     b.gatewayPort = o.value(QStringLiteral("gatewayPort")).toInt(443);
@@ -146,6 +148,7 @@ QStringList Bookmark::sessionArgs(const QString& password, const QString& gatewa
     if (!h264) a << QStringLiteral("--no-h264");
     if (!gpuDecode) a << QStringLiteral("--sw-decode");
     if (vsync) a << QStringLiteral("--vsync");
+    if (reverseScroll) a << QStringLiteral("--reverse-scroll");
 
     a << QStringLiteral("/v:%1").arg(address());
     if (!username.isEmpty()) a << QStringLiteral("/u:%1").arg(username);
