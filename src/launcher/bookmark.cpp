@@ -83,13 +83,14 @@ QJsonObject Bookmark::toJson() const {
     o[QStringLiteral("h264")] = h264;
     o[QStringLiteral("gpuDecode")] = gpuDecode;
     o[QStringLiteral("vsync")] = vsync;
+    o[QStringLiteral("reverseScroll")] = reverseScroll;
+    o[QStringLiteral("cursor")] = cursor;
     o[QStringLiteral("audio")] = audio;
     o[QStringLiteral("clipboard")] = clipboard;
     o[QStringLiteral("microphone")] = microphone;
     o[QStringLiteral("shareHome")] = shareHome;
     o[QStringLiteral("smartcards")] = smartcards;
     o[QStringLiteral("smartcardLogon")] = smartcardLogon;
-    o[QStringLiteral("reverseScroll")] = reverseScroll;
     o[QStringLiteral("gateway")] = gateway;
     o[QStringLiteral("gatewayHost")] = gatewayHost;
     o[QStringLiteral("gatewayPort")] = gatewayPort;
@@ -121,13 +122,14 @@ Bookmark Bookmark::fromJson(const QJsonObject& o) {
     b.h264 = o.value(QStringLiteral("h264")).toBool(true);
     b.gpuDecode = o.value(QStringLiteral("gpuDecode")).toBool(true);
     b.vsync = o.value(QStringLiteral("vsync")).toBool(false);
+    b.reverseScroll = o.value(QStringLiteral("reverseScroll")).toBool();
+    b.cursor = o.value(QStringLiteral("cursor")).toString(QStringLiteral("remote"));
     b.audio = o.value(QStringLiteral("audio")).toString(QStringLiteral("local"));
     b.clipboard = o.value(QStringLiteral("clipboard")).toBool(true);
     b.microphone = o.value(QStringLiteral("microphone")).toBool();
     b.shareHome = o.value(QStringLiteral("shareHome")).toBool();
     b.smartcards = o.value(QStringLiteral("smartcards")).toBool();
     b.smartcardLogon = o.value(QStringLiteral("smartcardLogon")).toBool();
-    b.reverseScroll = o.value(QStringLiteral("reverseScroll")).toBool();
     b.gateway = o.value(QStringLiteral("gateway")).toBool();
     b.gatewayHost = o.value(QStringLiteral("gatewayHost")).toString();
     b.gatewayPort = o.value(QStringLiteral("gatewayPort")).toInt(443);
@@ -149,6 +151,7 @@ QStringList Bookmark::sessionArgs(const QString& password, const QString& gatewa
     if (!gpuDecode) a << QStringLiteral("--sw-decode");
     if (vsync) a << QStringLiteral("--vsync");
     if (reverseScroll) a << QStringLiteral("--reverse-scroll");
+    a << QStringLiteral("--cursor=%1").arg(cursor);
 
     a << QStringLiteral("/v:%1").arg(address());
     if (!username.isEmpty()) a << QStringLiteral("/u:%1").arg(username);

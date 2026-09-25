@@ -45,6 +45,7 @@ EditDialog::EditDialog(const Bookmark& b, bool hasSavedPassword, bool hasSavedGa
     tabs->addTab(generalTab(), tr("General"));
     tabs->addTab(displayTab(), tr("Display"));
     tabs->addTab(performanceTab(), tr("Performance"));
+    tabs->addTab(inputTab(), tr("Input"));
     tabs->addTab(resourcesTab(), tr("Local resources"));
     tabs->addTab(gatewayTab(), tr("Gateway"));
     tabs->addTab(advancedTab(), tr("Advanced"));
@@ -183,6 +184,27 @@ QWidget* EditDialog::performanceTab() {
     return w;
 }
 
+QWidget* EditDialog::inputTab() {
+    auto* w = new QWidget;
+    auto* form = new QFormLayout(w);
+
+    cursor_ = new QComboBox;
+    cursor_->addItem(tr("Remote PC's pointer (recommended)"), QStringLiteral("remote"));
+    cursor_->addItem(tr("This computer's arrow"), QStringLiteral("local"));
+    cursor_->addItem(tr("Small dot"), QStringLiteral("dot"));
+    cursor_->addItem(tr("Hidden"), QStringLiteral("hidden"));
+    selectData(cursor_, b_.cursor);
+
+    reverseScroll_ = new QCheckBox(tr("Reverse scroll direction (natural scrolling)"));
+    reverseScroll_->setChecked(b_.reverseScroll);
+
+    form->addRow(tr("Pointer:"), cursor_);
+    form->addRow(QString(), hint(tr("Anything other than the remote pointer ignores the shapes "
+                                    "Windows asks for, such as the text beam and resize arrows.")));
+    form->addRow(tr("Mouse wheel:"), reverseScroll_);
+    return w;
+}
+
 QWidget* EditDialog::resourcesTab() {
     auto* w = new QWidget;
     auto* form = new QFormLayout(w);
@@ -199,14 +221,11 @@ QWidget* EditDialog::resourcesTab() {
     home_->setChecked(b_.shareHome);
     smartcards_ = new QCheckBox(tr("Smart card readers"));
     smartcards_->setChecked(b_.smartcards || b_.smartcardLogon);
-    reverseScroll_ = new QCheckBox(tr("Reverse scroll direction (natural scrolling)"));
-    reverseScroll_->setChecked(b_.reverseScroll);
     form->addRow(tr("Remote audio:"), audio_);
     form->addRow(QString(), clipboard_);
     form->addRow(QString(), mic_);
     form->addRow(QString(), home_);
     form->addRow(QString(), smartcards_);
-    form->addRow(tr("Mouse wheel:"), reverseScroll_);
     return w;
 }
 
@@ -312,12 +331,14 @@ Bookmark EditDialog::bookmark() const {
     b.gpuDecode = gpu_->isChecked();
     b.vsync = vsync_->isChecked();
 
+    b.reverseScroll = reverseScroll_->isChecked();
+    b.cursor = cursor_->currentData().toString();
+
     b.audio = audio_->currentData().toString();
     b.clipboard = clipboard_->isChecked();
     b.microphone = mic_->isChecked();
     b.shareHome = home_->isChecked();
     b.smartcards = smartcards_->isChecked();
-    b.reverseScroll = reverseScroll_->isChecked();
 
     b.gateway = gwEnabled_->isChecked();
     splitHostPort(gwAddress_->text(), b.gatewayHost, b.gatewayPort, 443);
