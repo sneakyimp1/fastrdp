@@ -372,6 +372,8 @@ int App::run(int argc, char** argv) {
     session_->setClipboard(clipboard_.get());
     session_->start();
     statsMs_ = SDL_GetTicks();
+    // Fixed cursor modes don't wait for the server's first pointer update.
+    if (opts_.cursor != CursorMode::Remote) applyCursor(CursorUpdate{});
 
     while (!quit_) {
         const uint64_t now = SDL_GetTicks();
@@ -633,7 +635,9 @@ void App::handleEvent(const SDL_Event& ev) {
     case SDL_EVENT_MOUSE_WHEEL: {
         flushMotion();
         float dy = ev.wheel.y, dx = ev.wheel.x;
-        if (ev.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+        // SDL reports FLIPPED when the local desktop uses natural scrolling; undo that so
+        // the remote PC gets the physical direction, then apply the connection's setting.
+        if ((ev.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) != opts_.reverseScroll) {
             dy = -dy;
             dx = -dx;
         }
@@ -666,6 +670,13 @@ void App::maybeRequestResize(uint64_t nowMs) {
 }
 
 void App::applyCursor(CursorUpdate&& c) {
+    switch (opts_.cursor) {
+    case CursorMode::Remote: break;
+    case CursorMode::Local: c.kind = CursorUpdate::Kind::Default; break;
+    case CursorMode::Hidden: c.kind = CursorUpdate::Kind::Hidden; break;
+    case CursorMode::Dot: showDotCursor(); return;
+    }
+
     switch (c.kind) {
     case CursorUpdate::Kind::Hidden:
         SDL_HideCursor();
@@ -711,6 +722,47 @@ void App::applyCursor(CursorUpdate&& c) {
     SDL_ShowCursor();
     if (cursor_) SDL_DestroyCursor(cursor_);
     cursor_ = cur;
+}
+
+// Draws an anti-aliased white dot with a black ring, size×size pixels.
+static SDL_Surface* makeDotSurface(int size) {
+    SDL_Surface* s = SDL_CreateSurface(size, size, SDL_PIXELFORMAT_ARGB8888);
+    if (!s) return nullptr;
+    const float r = size / 2.0f;
+    const float ring = std::max(1.0f, size / 7.0f);
+    for (int y = 0; y < size; ++y) {
+        auto* row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(s->pixels) + y * s->pitch);
+        for (int x = 0; x < size; ++x) {
+            const float d = std::hypot(x + 0.5f - r, y + 0.5f - r);
+            const float alpha = std::clamp(r - d + 0.5f, 0.0f, 1.0f);
+            const float white = std::clamp(r - ring - d + 0.5f, 0.0f, 1.0f);
+            const uint32_t a = uint32_t(std::lround(alpha * 255));
+            const uint32_t v = uint32_t(std::lround(white * 255));
+            row[x] = a << 24 | v << 16 | v << 8 | v;
+        }
+    }
+    return s;
+}
+
+void App::showDotCursor() {
+    if (!cursor_) {
+        constexpr int kDotPoints = 7;
+        const float density = outputs_.empty() ? 1.0f : outputs_.front().density;
+        SDL_Surface* base = makeDotSurface(kDotPoints);
+        if (!base) return;
+        const int hiRes = int(std::lround(kDotPoints * density));
+        if (hiRes > kDotPoints) {
+            if (SDL_Surface* hi = makeDotSurface(hiRes)) {
+                SDL_AddSurfaceAlternateImage(base, hi);
+                SDL_DestroySurface(hi);
+            }
+        }
+        cursor_ = SDL_CreateColorCursor(base, kDotPoints / 2, kDotPoints / 2);
+        SDL_DestroySurface(base);
+        if (!cursor_) return;
+    }
+    SDL_SetCursor(cursor_);
+    SDL_ShowCursor();
 }
 
 void App::updateTitle(uint64_t nowMs) {

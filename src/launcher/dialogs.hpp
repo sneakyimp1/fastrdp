@@ -34,6 +34,7 @@ private:
     QWidget* generalTab();
     QWidget* displayTab();
     QWidget* performanceTab();
+    QWidget* inputTab();
     QWidget* resourcesTab();
     QWidget* gatewayTab();
     QWidget* advancedTab();
@@ -52,6 +53,9 @@ private:
 
     QComboBox* network_;
     QCheckBox *h264_, *gpu_, *vsync_;
+
+    QCheckBox* reverseScroll_;
+    QComboBox* cursor_;
 
     QComboBox* audio_;
     QCheckBox *clipboard_, *mic_, *home_, *smartcards_;

@@ -29,6 +29,9 @@ struct Bookmark {
     bool gpuDecode = true;
     bool vsync = false;
 
+    bool reverseScroll = false;                // invert the mouse wheel sent to the remote PC
+    QString cursor = QStringLiteral("remote"); // remote | local | dot | hidden
+
     QString audio = QStringLiteral("local"); // local | remote | off
     bool clipboard = true;
     bool microphone = false;

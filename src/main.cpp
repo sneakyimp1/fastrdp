@@ -19,6 +19,8 @@ static void usage(const char* argv0) {
             "  --no-h264         don't offer H.264/AVC444 to the server\n"
             "  --sw-decode       decode H.264 on the CPU instead of VAAPI\n"
             "  --scale=MODE      fit (default), stretch, or native while sizes differ\n"
+            "  --reverse-scroll  invert the mouse wheel (natural scrolling)\n"
+            "  --cursor=MODE     remote (default), local arrow, dot, or hidden\n"
             "  --stats           print per-second performance stats\n"
             "  --title=NAME      window title\n"
             "  --password=PW     password (only sensible with --session-stdin)\n"
@@ -45,6 +47,11 @@ static int runSession(const char* argv0, const std::vector<std::string>& args, b
         else if (a == "--no-h264") opts.h264 = false;
         else if (a == "--sw-decode") opts.hwDecode = false;
         else if (a == "--stats") opts.printStats = true;
+        else if (a == "--reverse-scroll") opts.reverseScroll = true;
+        else if (a == "--cursor=remote") opts.cursor = fastrdp::CursorMode::Remote;
+        else if (a == "--cursor=local") opts.cursor = fastrdp::CursorMode::Local;
+        else if (a == "--cursor=dot") opts.cursor = fastrdp::CursorMode::Dot;
+        else if (a == "--cursor=hidden") opts.cursor = fastrdp::CursorMode::Hidden;
         else if (a == "--scale=fit") opts.scale = fastrdp::ScaleMode::Fit;
         else if (a == "--scale=stretch") opts.scale = fastrdp::ScaleMode::Stretch;
         else if (a == "--scale=native") opts.scale = fastrdp::ScaleMode::Native;

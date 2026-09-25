@@ -18,11 +18,21 @@
 
 namespace fastrdp {
 
+// What the local pointer looks like over the remote desktop.
+enum class CursorMode {
+    Remote, // the remote PC's pointer image (default)
+    Local,  // this computer's default arrow
+    Dot,    // a small dot, for precise pointing
+    Hidden, // no pointer at all
+};
+
 struct AppOptions {
     bool vsync = false;
     bool h264 = true;
     bool hwDecode = true;
     bool printStats = false;
+    bool reverseScroll = false;
+    CursorMode cursor = CursorMode::Remote;
     ScaleMode scale = ScaleMode::Fit;
     bool userSetSize = false;
     bool userSetNetwork = false;
@@ -79,6 +89,7 @@ private:
     void handleEvent(const SDL_Event& ev);
     void flushMotion();
     void applyCursor(CursorUpdate&& c);
+    void showDotCursor();
     void maybeRequestResize(uint64_t nowMs);
     void updateTitle(uint64_t nowMs);
     bool toDesktop(SDL_WindowID id, float x, float y, int& dx, int& dy);

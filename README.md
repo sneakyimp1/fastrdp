@@ -17,7 +17,9 @@ everything between the network and your screen with a GPU pipeline:
   waiting for the next vblank. On Wayland the compositor can't tear, so this is simply the
   lowest-latency option. `--vsync` restores vblank pacing.
 - **Local hardware cursor.** The remote pointer image is drawn by your compositor, so
-  it moves with zero network delay.
+  it moves with zero network delay. A connection's Input tab (or `--cursor=local|dot|hidden`)
+  can swap it for your own arrow or a small dot, or hide it, and can reverse the scroll
+  direction (`--reverse-scroll`).
 - **Smooth resizing.** While you drag, the current frame is scaled to fit. The new
   resolution is requested from the server once you stop.
 - **Multiple monitors.** `/multimon` (or "Full screen on all my monitors") opens one

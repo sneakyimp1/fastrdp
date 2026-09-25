@@ -83,6 +83,8 @@ QJsonObject Bookmark::toJson() const {
     o[QStringLiteral("h264")] = h264;
     o[QStringLiteral("gpuDecode")] = gpuDecode;
     o[QStringLiteral("vsync")] = vsync;
+    o[QStringLiteral("reverseScroll")] = reverseScroll;
+    o[QStringLiteral("cursor")] = cursor;
     o[QStringLiteral("audio")] = audio;
     o[QStringLiteral("clipboard")] = clipboard;
     o[QStringLiteral("microphone")] = microphone;
@@ -120,6 +122,8 @@ Bookmark Bookmark::fromJson(const QJsonObject& o) {
     b.h264 = o.value(QStringLiteral("h264")).toBool(true);
     b.gpuDecode = o.value(QStringLiteral("gpuDecode")).toBool(true);
     b.vsync = o.value(QStringLiteral("vsync")).toBool(false);
+    b.reverseScroll = o.value(QStringLiteral("reverseScroll")).toBool();
+    b.cursor = o.value(QStringLiteral("cursor")).toString(QStringLiteral("remote"));
     b.audio = o.value(QStringLiteral("audio")).toString(QStringLiteral("local"));
     b.clipboard = o.value(QStringLiteral("clipboard")).toBool(true);
     b.microphone = o.value(QStringLiteral("microphone")).toBool();
@@ -146,6 +150,8 @@ QStringList Bookmark::sessionArgs(const QString& password, const QString& gatewa
     if (!h264) a << QStringLiteral("--no-h264");
     if (!gpuDecode) a << QStringLiteral("--sw-decode");
     if (vsync) a << QStringLiteral("--vsync");
+    if (reverseScroll) a << QStringLiteral("--reverse-scroll");
+    a << QStringLiteral("--cursor=%1").arg(cursor);
 
     a << QStringLiteral("/v:%1").arg(address());
     if (!username.isEmpty()) a << QStringLiteral("/u:%1").arg(username);
